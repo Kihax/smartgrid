@@ -35,7 +35,15 @@ public class VertxServer {
         Router router = Router.router(vertx);
 
         router.get("/hello").handler(new ExampleHandler(this.db));
+
+        // differents handlers for grids
         router.get("/grids").handler(new GridsHandler(this.db));
+        router.get("/grid/:id").handler(new GridUniqueHandler(this.db));
+        router.get("/grid/:id/production").handler(new GridProductionHandler(this.db));
+
+        // differents handlers for persons
+        router.get("/persons").handler(new PersonsHandler(this.db));
+        router.get("/persons/:id").handler(new GetPersonByIdHandler(this.db));
         
         // start the server
         vertx.createHttpServer().requestHandler(router).listen(8080);
