@@ -4,16 +4,16 @@ import java.util.List;
 
 import fr.imta.smartgrid.model.Grid;
 import fr.imta.smartgrid.model.Sensor;
-import fr.imta.smartgrid.model.Producer;
+import fr.imta.smartgrid.model.Consumer;
 
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.persistence.EntityManager;
 
-public class GridProductionHandler implements Handler<RoutingContext> {
+public class GridConsumptionHandler implements Handler<RoutingContext> {
     EntityManager db;
 
-    public GridProductionHandler(EntityManager db) {
+    public GridConsumptionHandler(EntityManager db) {
         this.db = db;
     }
 
@@ -43,7 +43,7 @@ public class GridProductionHandler implements Handler<RoutingContext> {
                         System.out.println("Sensor id: " + s.getId());
                         System.out.println("Sensor name: " + s.getName());
 
-                        Producer result = db.find(Producer.class, s.getId());
+                        Consumer result = db.find(Consumer.class, s.getId());
 
                         if(result == null) { // Check if sensor is a producer or a charger
                             System.out.println("No producer found for sensor: " + s.getName());

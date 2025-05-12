@@ -4,17 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.vertx.core.json.JsonObject;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "sensor")
@@ -25,6 +15,8 @@ public abstract class Sensor {
     private int id;
 
     private String name;
+
+    private String dtype;
 
     private String description;
 
@@ -38,14 +30,13 @@ public abstract class Sensor {
     @OneToMany(mappedBy = "sensor")
     private List<Measurement> measurements = new ArrayList<>();
 
-    public JsonObject toJSON() {
+    public String toJSON(EntityManager db) {
         JsonObject res = new JsonObject();
 
-        // TODO
-
-        return res;
+        return res.toString();
     }
 
+    // Getters et setters
     public int getId() {
         return id;
     }
@@ -78,6 +69,13 @@ public abstract class Sensor {
         this.grid = grid;
     }
 
+    public String getDtype() {
+        return dtype;
+    }
+    public void setDtype(String dtype) {
+        this.dtype = dtype;
+    }
+
     public List<Person> getOwners() {
         return owners;
     }
@@ -93,6 +91,4 @@ public abstract class Sensor {
     public void setMeasurements(List<Measurement> measurements) {
         this.measurements = measurements;
     }
-
-    
 }
