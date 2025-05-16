@@ -10,6 +10,7 @@ import org.eclipse.persistence.config.TargetServer;
 
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.BodyHandler;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Persistence;
 
@@ -46,11 +47,16 @@ public class VertxServer {
         // differents handlers for persons
         router.get("/persons").handler(new PersonsHandler(this.db));
         router.get("/person/:id").handler(new GetPersonByIdHandler(this.db));
-        router.post("/person/:id").handler(new PostPersonIDHandler(this.db));
-        router.put("/person/:id").handler(new PutPersonHandler(this.db));
+        router.post("/person/:id")
+                .handler(BodyHandler.create()) 
+                .handler(new PostPersonIDHandler(this.db));
+        router.put("/person")
+                .handler(BodyHandler.create()) 
+                .handler(new PutPersonHandler(this.db));
         router.delete("/person/:id").handler(new DeletePersonHandler(this.db));
 
         // differents handlers for sensors
+        router.get("/consumers").handler(new SensorUniqueHandler(this.db));
         router.get("/sensor/:id").handler(new SensorUniqueHandler(this.db));
         
         // start the server

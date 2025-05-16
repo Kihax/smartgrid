@@ -59,75 +59,80 @@ public class SensorUniqueHandler implements Handler<RoutingContext> {
             res.put("description", s.getDescription());
             res.put("kind", s.getDtype());
 
+            System.out.println("------------------- Production -------------------");
+
             try {
-                Producer prod = db.find(Producer.class, s.getId());
-                if (prod != null) {
-                    System.out.println("SolarPanel trouvé avec id = " + s.getId());
-                    res.put("power_source", prod.getPowerSource());
-                }
+                String powerSource = (String) db.createNativeQuery("SELECT power_source FROM producer WHERE id = ?")
+                .setParameter(1, sensorId)
+                .getSingleResult();
+
+                res.put("power_source", powerSource);
             } catch (Exception e) {
-                System.err.println("Erreur lors de la récupération du producteur : " + e.getMessage());
+                System.out.println("No power source found");
             }
 
             try {
-                System.out.println("Panneau solaire----------------------------------");
-                SolarPanel sol = db.find(SolarPanel.class, s.getId());
-                if (sol != null) {
-                    System.out.println(sol.getEfficiency());
-                    res.put("efficiency", sol.getEfficiency());
-                } else {
-                    System.out.println("Aucun panneau solaire trouvé avec l'ID " + s.getId());
-                }
+                int maxPower = (int) db.createNativeQuery("SELECT max_power FROM consumer WHERE id = ?")
+                .setParameter(1, sensorId)
+                .getSingleResult();
+
+                res.put("max_power", maxPower);
+            } catch (Exception e) {
+                System.out.println("No consumer found");
+            }
+
+            try {
+                double efficiency = (double) db.createNativeQuery("SELECT efficiency FROM solar_panel WHERE id = ?")
+                                         .setParameter(1, sensorId)
+                                         .getSingleResult();
+                res.put("efficiency", efficiency);
             } catch (Exception e) {
                 System.err.println("Erreur lors de la récupération du panneau solaire : " + e.getMessage());
             }
 
             try {
-                WindTurbine wind = db.find(WindTurbine.class, s.getId());
-                if (wind != null) {
-                    res.put("height", wind.getHeight());
-                    res.put("blade_length", wind.getBladeLength());
+                Object[] windTurbineData = (Object[]) db.createNativeQuery("SELECT height, bladelength FROM wind_turbine WHERE id = ?")
+                    .setParameter(1, sensorId)
+                    .getSingleResult();
+                if (windTurbineData != null && windTurbineData.length == 2) {
+                    res.put("height", windTurbineData[0]);
+                    res.put("bladelength", windTurbineData[1]);
                 }
             } catch (Exception e) {
                 System.err.println("Erreur lors de la récupération de l'éolienne : " + e.getMessage());
             }
 
             try {
-                Consumer cons = db.find(Consumer.class, s.getId());
-                if (cons != null) {
-                    res.put("max_power", cons.getMaxPower() != null ? cons.getMaxPower() : 0);
-                }
-            } catch (Exception e) {
-                System.err.println("Erreur lors de la récupération du consommateur : " + e.getMessage());
-            }
-
-            try {
-                EVCharger ev = db.find(EVCharger.class, s.getId());
-                if (ev != null) {
-                    res.put("type", ev.getType());
-                    res.put("maxAmp", ev.getMaxAmp());
-                    res.put("voltage", ev.getVoltage());
-                }
-                } catch (Exception e) {
-                    System.err.println("Erreur lors de la récupération du chargeur EV : " + e.getMessage());
-                }
-
-                if (s.getGrid() != null) {
-                    res.put("grid", s.getGrid().getId());
-                }
-
-                res.put("available_measurements", s.getMeasurements().stream().map(Measurement::getId).toList());
-                res.put("owners", s.getOwners().stream().map(Person::getId).toList());
-
-                event.end(res.toString());
+                Object[] evChargerData = (Object[]) db.createNativeQuery("SELECT voltage, maxamp, connector_type FROM ev_charger WHERE id = ?")
+                    .setParameter(1, sensorId)
+                    .getSingleResult();
                 
-            } catch (NumberFormatException e) {
-                event.end("404 Not Found: "); 
-                return; 
+                if (evChargerData != null && evChargerData.length == 3) {
+                    res.put("voltage", evChargerData[0]);
+                    res.put("maxamp", evChargerData[1]);
+                    res.put("connector_type", evChargerData[2]);
+                }
+
+            } catch (Exception e) {
+
             }
 
-        
+            if (s.getGrid() != null) {
+                res.put("grid", s.getGrid().getId());
+            }
 
+
+            res.put("available_measurements", s.getMeasurements().stream().map(Measurement::getId).toList());
+            res.put("owners", s.getOwners().stream().map(Person::getId).toList());
+
+            event.response()
+                .putHeader("content-type", "application/json")
+                .setStatusCode(200)
+                .end(res.toString());
+        } catch (Exception e) {
+            event.end("500 Internal Server Error: " + e.getMessage());
+            return;
+        }
 
     }
     
