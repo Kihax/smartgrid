@@ -10,41 +10,43 @@ import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class GetPersonByIdHandler implements Handler<RoutingContext> {
+public class GetPersonByIDHandler implements Handler<RoutingContext> {
     private final EntityManager db;
 
-    public GetPersonByIdHandler(EntityManager db) {
+    public GetPersonByIDHandler(EntityManager db) {
         this.db = db;
     }
 
     @Override
     public void handle(RoutingContext ctx) {
+        // Récupère l'id depuis l'url
         String idParam = ctx.pathParam("id");
         int personId;
 
+        // Vérifie si l'id est un entier
         try {
             personId = Integer.parseInt(idParam);
         } catch (NumberFormatException e) {
-            ctx.response().setStatusCode(400).end("{\"error\": \"Invalid ID\"}");
+            ctx.response().setStatusCode(404).end("{\"error\": \"Person not found\"}");
             return;
         }
 
+        // Récupère la personne depuis la base de données
         Person person = db.find(Person.class, personId);
         if (person == null) {
             ctx.response().setStatusCode(404).end("{\"error\": \"Person not found\"}");
             return;
         }
 
-        // Native SQL to get sensor IDs from association table
-        List<Integer> sensorIds = ((List<?>) db.createNativeQuery(
-            "SELECT sensor_id FROM person_sensor WHERE person_id = ?"
-        )
-        .setParameter(1, personId)
-        .getResultList())
-        .stream()
-        .map(id -> ((Number) id).intValue())
-        .collect(Collectors.toList());
+        // Récupère les capteurs associés à la personne
+        List<Integer> sensorIds = ((List<?>) db.createNativeQuery("SELECT sensor_id FROM person_sensor WHERE person_id = ?")
+                                                .setParameter(1, personId)
+                                                .getResultList())
+                                                .stream()
+                                                .map(id -> ((Number) id).intValue())
+                                                .collect(Collectors.toList());
 
+        // Crée un objet JSON avec les informations de la personne
         JsonObject json = new JsonObject()
             .put("id", person.getId())
             .put("first_name", person.getFirstName())
@@ -52,6 +54,7 @@ public class GetPersonByIdHandler implements Handler<RoutingContext> {
             .put("grid", person.getGrid() != null ? person.getGrid().getId() : null)
             .put("owned_sensors", sensorIds);
 
+        // Envoie la réponse au client
         ctx.response()
             .putHeader("Content-Type", "application/json")
             .end(json.encode());

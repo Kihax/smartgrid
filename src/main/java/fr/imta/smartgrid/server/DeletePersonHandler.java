@@ -3,13 +3,8 @@ package fr.imta.smartgrid.server;
 import fr.imta.smartgrid.model.Person;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.core.json.JsonObject;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class DeletePersonHandler implements Handler<RoutingContext> {
     private final EntityManager db;
@@ -20,36 +15,42 @@ public class DeletePersonHandler implements Handler<RoutingContext> {
 
     @Override
     public void handle(RoutingContext context) {
+
+        // Récupère l'indentifiant de la personne à supprimer depuis l'URL
         String idParam = context.pathParam("id");
-        if (idParam == null) {
-            context.response()
-                   .setStatusCode(400)
-                   .end("Missing ID");
+        Person person;
+        // Récupère la personne à partir de l'identifiant
+        try {
+            int personId = Integer.parseInt(idParam);
+            person = db.find(Person.class, personId);
+            
+            if (person == null) {
+                // Renvoie une erreur 404 si l'utilisateur n'existe pas
+                context.response().setStatusCode(404).end("{\"error\": \"Person not found\"}");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            // Renvoie une erreur 404 si l'utilisateur n'existe pas
+            context.response().setStatusCode(404).end("{\"error\": \"Person not found\"}");
             return;
         }
 
         try {
-            int personId = Integer.parseInt(idParam);
-
+            // Démarre une transaction pour supprimer la personne
             EntityTransaction tx = db.getTransaction();
             tx.begin();
 
-            Person person = db.find(Person.class, personId);
-            if (person == null) {
-                tx.rollback();
-                context.response()
-                       .setStatusCode(404)
-                       .end("Person not found");
-                return;
-            }
-
+            // Supprime la personne de la base de données
             db.remove(person);
+            // Commit la transaction
             tx.commit();
 
+            // Renvoie une réponse 200 si la suppression a réussi
             context.response()
                    .setStatusCode(200)
                    .end("Person successfully deleted");
         } catch (NumberFormatException e) {
+            // Renvoie une erreur 500 si la suppression échoue
             context.response()
                    .setStatusCode(500)
                    .end("Error during deletion: " + e.getMessage());

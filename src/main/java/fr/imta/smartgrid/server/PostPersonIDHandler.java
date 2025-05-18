@@ -1,13 +1,11 @@
 package fr.imta.smartgrid.server;
 
-import fr.imta.smartgrid.model.Person;
 import fr.imta.smartgrid.model.Grid;
-
+import fr.imta.smartgrid.model.Person;
 import io.vertx.core.Handler;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
-
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
 import jakarta.persistence.EntityManager;
 
 // Définition du handler qui traite les requêtes POST pour mettre à jour une personne par rapport à son ID
@@ -31,20 +29,28 @@ public class PostPersonIDHandler implements Handler<RoutingContext> {
         String idParam = ctx.pathParam("id");
         int personId;
     
+        
         // Convertis l'identifiant en entier
-        personId = Integer.parseInt(idParam);
-
-        // Recherche la personne dans la base de donnée
-        Person person = db.find(Person.class, personId);
-
-        // Renvoie une erreur 404 si l'ID n'est pas dans la base de donnée
-        if (person == null) {
+        try {
+            personId = Integer.parseInt(idParam);
+        } catch (NumberFormatException e) {
             ctx.response()
                .setStatusCode(404)
-               .end("{\"error\": \"Person not found with ID: " + personId + "\"}");
+               .end("{\"error\": \"Person not found\"}");
             return;
         }
 
+        // Recherche la personne dans la base de donnée
+        Person person;
+        try {
+            person  = db.find(Person.class, personId);
+        } catch (Exception e) {
+            ctx.response()
+               .setStatusCode(404)
+               .end("{\"error\": \"Person not found\"}");
+            return;
+        }
+        
         try {
             db.getTransaction().begin();
 

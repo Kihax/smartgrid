@@ -1,13 +1,11 @@
 package fr.imta.smartgrid.server;
 
-import fr.imta.smartgrid.model.Person;
 import fr.imta.smartgrid.model.Grid;
-
+import fr.imta.smartgrid.model.Person;
 import io.vertx.core.Handler;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
-
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
 import jakarta.persistence.EntityManager;
 
 // Définition du handler qui traite les requêtes PUT pour ajouter une personne dans la base de donnée
@@ -91,6 +89,7 @@ public class PutPersonHandler implements Handler<RoutingContext> {
             JsonObject json = new JsonObject()
                 .put("id", person.getId());
 
+            // Envoie la réponse au client
             ctx.response()
                 .putHeader("Content-Type", "application/json")
                 .end(json.encode());
