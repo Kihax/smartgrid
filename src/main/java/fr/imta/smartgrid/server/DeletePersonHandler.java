@@ -26,12 +26,18 @@ public class DeletePersonHandler implements Handler<RoutingContext> {
             
             if (person == null) {
                 // Renvoie une erreur 404 si l'utilisateur n'existe pas
-                context.response().setStatusCode(404).end("{\"error\": \"Person not found\"}");
+                context.response()
+                        .setStatusCode(404)
+                        .putHeader("content-type", "application/json")
+                        .end("{\"error\": \"Person not found\"}");
                 return;
             }
         } catch (NumberFormatException e) {
             // Renvoie une erreur 404 si l'utilisateur n'existe pas
-            context.response().setStatusCode(404).end("{\"error\": \"Person not found\"}");
+            context.response()
+                    .setStatusCode(404)
+                    .putHeader("content-type", "application/json")
+                    .end("{\"error\": \"Person not found\"}");
             return;
         }
 
@@ -48,11 +54,13 @@ public class DeletePersonHandler implements Handler<RoutingContext> {
             // Renvoie une réponse 200 si la suppression a réussi
             context.response()
                    .setStatusCode(200)
+                   .putHeader("content-type", "application/json")
                    .end("Person successfully deleted");
         } catch (NumberFormatException e) {
             // Renvoie une erreur 500 si la suppression échoue
             context.response()
                    .setStatusCode(500)
+                   .putHeader("content-type", "application/json")
                    .end("Error during deletion: " + e.getMessage());
         }
     }

@@ -14,10 +14,10 @@ public class ExampleHandler implements Handler<RoutingContext> {
     }
 
     @Override
-    public void handle(RoutingContext event) {
+    public void handle(RoutingContext context) {
         Long nbSensors = (Long)db.createNativeQuery("SELECT count(*) FROM sensor").getSingleResult();
         
-        event.end("There are " + nbSensors + " sensors in database");
+        context.end("There are " + nbSensors + " sensors in database");
 
         // get a single object from DB, notice the second parameter to the createNativeQuery function
         // we also pass a parameter to the query with the ?, we use setParameter to set the value safely (otherwise SQL injection risk), first argument is the position of the ?, second is the value. Position start at 1 !

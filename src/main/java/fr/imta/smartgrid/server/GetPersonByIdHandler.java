@@ -18,23 +18,29 @@ public class GetPersonByIDHandler implements Handler<RoutingContext> {
     }
 
     @Override
-    public void handle(RoutingContext ctx) {
+    public void handle(RoutingContext context) {
         // Récupère l'id depuis l'url
-        String idParam = ctx.pathParam("id");
+        String idParam = context.pathParam("id");
         int personId;
 
         // Vérifie si l'id est un entier
         try {
             personId = Integer.parseInt(idParam);
         } catch (NumberFormatException e) {
-            ctx.response().setStatusCode(404).end("{\"error\": \"Person not found\"}");
+            context.response()
+                    .putHeader("content-type", "application/json")
+                    .setStatusCode(404)
+                    .end("{\"error\": \"Person not found\"}");
             return;
         }
 
         // Récupère la personne depuis la base de données
         Person person = db.find(Person.class, personId);
         if (person == null) {
-            ctx.response().setStatusCode(404).end("{\"error\": \"Person not found\"}");
+            context.response()
+                    .putHeader("content-type", "application/json")
+                    .setStatusCode(404)
+                    .end("{\"error\": \"Person not found\"}");
             return;
         }
 
@@ -55,7 +61,8 @@ public class GetPersonByIDHandler implements Handler<RoutingContext> {
             .put("owned_sensors", sensorIds);
 
         // Envoie la réponse au client
-        ctx.response()
+        context.response()
+            .setStatusCode(200)
             .putHeader("Content-Type", "application/json")
             .end(json.encode());
     }

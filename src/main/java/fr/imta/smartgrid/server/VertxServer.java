@@ -9,6 +9,7 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.TARGET_SE
 import org.eclipse.persistence.config.TargetServer;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.datagram.DatagramSocket;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import jakarta.persistence.EntityManager;
@@ -69,12 +70,22 @@ public class VertxServer {
         router.get("/measurement/:id/values").handler(new GetMeasurementByIDValuesHandler(this.db)); // Renvoie les valeurs d'une mesure
 
         // Partie backend pour la persistance des données
-        router.get("/ingress/windturbine")
+        router.post("/ingress/windturbine")
                 .handler(BodyHandler.create()) // nécessaire pour parser le corps de la requête et l'utiliser dans le handler
-                .handler(new WindTurineIngressHandler(this.db));
+                .handler(new PostWindTurineIngressHandler(this.db));
         
         // démarre le serveur HTTP sur le port 8080
         vertx.createHttpServer().requestHandler(router).listen(8080);
+
+        // create a UDP socket
+        DatagramSocket socket = vertx.createDatagramSocket();
+        // register a handler for this server
+        socket.handler(new UDPHandler(this.db));
+
+        // start the server to listen on all interfaces on port 12345
+        socket.listen(12345, "0.0.0.0");
+
+        System.out.println("Server started");
     }
 
     public static void main(String[] args) {

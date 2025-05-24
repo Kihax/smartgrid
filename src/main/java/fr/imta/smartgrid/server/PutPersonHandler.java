@@ -19,15 +19,16 @@ public class PutPersonHandler implements Handler<RoutingContext> {
 
     // Méthode principale
     @Override
-    public void handle(RoutingContext ctx) {
+    public void handle(RoutingContext context) {
         
         // Récupère le corps JSON de la requête et renvoie une erreur 500 si le format n'est pas correct
         JsonObject body;
         try {
-            body = ctx.body().asJsonObject(); 
+            body = context.body().asJsonObject(); 
         } catch (Exception e) {
-            ctx.response()
+            context.response()
                 .setStatusCode(500) 
+                .putHeader("content-type", "application/json")
                 .end("{\"error\": \"Invalid JSON format\"}");
             return;
         }
@@ -62,7 +63,10 @@ public class PutPersonHandler implements Handler<RoutingContext> {
             } else {
 
                 // Renvoie une erreur 500 dans le cas où il manquerait un champ
-                ctx.response().setStatusCode(500).end("{\"error\": \"Missing required fields\"}");
+                context.response()
+                        .setStatusCode(500)
+                        .putHeader("content-type", "application/json")
+                        .end("{\"error\": \"Missing required fields\"}");
                 return;
             }
 
@@ -90,8 +94,9 @@ public class PutPersonHandler implements Handler<RoutingContext> {
                 .put("id", person.getId());
 
             // Envoie la réponse au client
-            ctx.response()
+            context.response()
                 .putHeader("Content-Type", "application/json")
+                .setStatusCode(200)
                 .end(json.encode());
 
         } catch (Exception e) {
@@ -100,7 +105,10 @@ public class PutPersonHandler implements Handler<RoutingContext> {
             if (db.getTransaction().isActive()) {
                 db.getTransaction().rollback();
             }
-            ctx.response().setStatusCode(500).end("{\"error\": \"Database update failed\"}");
+            context.response()
+                    .putHeader("content-type", "application/json")
+                    .setStatusCode(500)
+                    .end("{\"error\": \"Database update failed\"}");
         }
     }
 }

@@ -19,14 +19,14 @@ public class PostPersonIDHandler implements Handler<RoutingContext> {
 
     // Méthode principale
     @Override
-    public void handle(RoutingContext ctx) {
+    public void handle(RoutingContext context) {
         
         // Récupère le corps JSON de la requête
         JsonObject body;
-        body = ctx.body().asJsonObject();
+        body = context.body().asJsonObject();
 
         // Récupère l'identifiant de la personne depuis l'URL
-        String idParam = ctx.pathParam("id");
+        String idParam = context.pathParam("id");
         int personId;
     
         
@@ -34,8 +34,9 @@ public class PostPersonIDHandler implements Handler<RoutingContext> {
         try {
             personId = Integer.parseInt(idParam);
         } catch (NumberFormatException e) {
-            ctx.response()
+            context.response()
                .setStatusCode(404)
+               .putHeader("content-type", "application/json")
                .end("{\"error\": \"Person not found\"}");
             return;
         }
@@ -45,8 +46,9 @@ public class PostPersonIDHandler implements Handler<RoutingContext> {
         try {
             person  = db.find(Person.class, personId);
         } catch (Exception e) {
-            ctx.response()
+            context.response()
                .setStatusCode(404)
+               .putHeader("content-type", "application/json")
                .end("{\"error\": \"Person not found\"}");
             return;
         }
@@ -122,7 +124,10 @@ public class PostPersonIDHandler implements Handler<RoutingContext> {
             db.getTransaction().commit();
 
             // Retourne 200 en cas de succès
-            ctx.response().setStatusCode(200).end("{\"status\": \"success\"}");
+            context.response()
+                    .setStatusCode(200)
+                    .putHeader("content-type", "application/json")
+                    .end("{\"status\": \"success\"}");
 
         } catch (Exception e) {
             
@@ -130,7 +135,10 @@ public class PostPersonIDHandler implements Handler<RoutingContext> {
             if (db.getTransaction().isActive()) {
                 db.getTransaction().rollback();
             }
-            ctx.response().setStatusCode(500).end("{\"error\": \"Database update failed\", \"details\": \"" + e.getMessage() + "\"}");
+            context.response()
+                    .setStatusCode(500)
+                    .putHeader("content-type", "application/json")
+                    .end("{\"error\": \"Database update failed\", \"details\": \"" + e.getMessage() + "\"}");
         }
     }
 }
