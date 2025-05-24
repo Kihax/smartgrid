@@ -38,6 +38,8 @@ Changer cette propriété impliquerait également la modification de champs dép
 
 Actuellement, la modification de `power_source` est possible, mais sans ajustement automatique des autres paramètres liés.
 
+Concernant certains codes, les résultats obtenus ne correspondent pas exactement à ceux affichés sur le site, notamment pour les codes calculant la consommation ou la production totale d’un capteur, ainsi que ceux affichant les mesures disponibles.
+
 ### Utilisation de l'IA
 
 Nous avons utilisé une IA (comme ChatGPT) pour comprendre comment parser le body des requêtes dans les endpoints POST, par exemple pour `/sensor/:id` ou `/person/:id`.

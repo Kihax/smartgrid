@@ -7,7 +7,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.persistence.EntityManager;
-import java.util.List;
 
 public class PostWindTurineIngressHandler implements Handler<RoutingContext> {
     EntityManager db;

@@ -1,6 +1,5 @@
 package fr.imta.smartgrid.model;
 
-import io.vertx.core.json.JsonObject;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

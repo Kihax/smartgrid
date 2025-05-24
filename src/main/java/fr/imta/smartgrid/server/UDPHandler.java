@@ -1,13 +1,11 @@
 package fr.imta.smartgrid.server;
 
 import fr.imta.smartgrid.model.DataPoint;
-import fr.imta.smartgrid.model.SolarPanel;
 
 import io.vertx.core.Handler;
 import io.vertx.core.datagram.DatagramPacket;
 import jakarta.persistence.EntityManager;
 import fr.imta.smartgrid.model.Measurement;
-
 
 public class UDPHandler implements Handler<DatagramPacket> {
 

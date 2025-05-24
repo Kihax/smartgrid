@@ -35,6 +35,15 @@ public class GetSensorByIDHandler implements Handler<RoutingContext> {
             res.put("name", s.getName());
             res.put("description", s.getDescription());
             res.put("kind", s.getDtype());
+            
+            if (s.getGrid() != null) {
+                res.put("grid", s.getGrid().getId()); // Ajout de la grille au JSON
+            }
+
+            // Récupération des mesures associées au capteur
+            res.put("available_measurements", s.getMeasurements().stream().map(Measurement::getId).toList());
+            // Récupération des utilisateurs associés au capteur
+            res.put("owners", s.getOwners().stream().map(Person::getId).toList());
 
 
             try {
@@ -70,7 +79,7 @@ public class GetSensorByIDHandler implements Handler<RoutingContext> {
                     .getSingleResult();
                 if (windTurbineData != null && windTurbineData.length == 2) {
                     res.put("height", windTurbineData[0]);
-                    res.put("bladelength", windTurbineData[1]);
+                    res.put("blade_length", windTurbineData[1]);
                 }
             } catch (Exception e) {}
 
@@ -81,21 +90,12 @@ public class GetSensorByIDHandler implements Handler<RoutingContext> {
                     .getSingleResult();
                 
                 if (evChargerData != null && evChargerData.length == 3) {
+                    res.put("type", evChargerData[2]);
+                    res.put("maxAmp", evChargerData[1]);
                     res.put("voltage", evChargerData[0]);
-                    res.put("maxamp", evChargerData[1]);
-                    res.put("connector_type", evChargerData[2]);
                 }
 
             } catch (Exception e) {}
-
-            if (s.getGrid() != null) {
-                res.put("grid", s.getGrid().getId()); // Ajout de la grille au JSON
-            }
-
-            // Récupération des mesures associées au capteur
-            res.put("available_measurements", s.getMeasurements().stream().map(Measurement::getId).toList());
-            // Récupération des utilisateurs associés au capteur
-            res.put("owners", s.getOwners().stream().map(Person::getId).toList());
 
             // Envoi de la réponse au format JSON
             context.response()
