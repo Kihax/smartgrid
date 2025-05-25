@@ -73,9 +73,6 @@ public class VertxServer {
         router.post("/ingress/windturbine")
                 .handler(BodyHandler.create()) // nécessaire pour parser le corps de la requête et l'utiliser dans le handler
                 .handler(new PostWindTurineIngressHandler(this.db));
-
-        router.get("/testColine/:id")
-                .handler(new GetPersonHandler2(this.db)); // Test handler for Coline
         
         // démarre le serveur HTTP sur le port 8080
         vertx.createHttpServer().requestHandler(router).listen(8080);

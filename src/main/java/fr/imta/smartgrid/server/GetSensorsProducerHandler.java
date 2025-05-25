@@ -8,7 +8,6 @@ import fr.imta.smartgrid.model.Person;
 import fr.imta.smartgrid.model.Sensor;
 
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.persistence.EntityManager;
@@ -80,72 +79,21 @@ public class GetSensorsProducerHandler implements Handler<RoutingContext> {
     @Override
     public void handle(RoutingContext context) {
 
-        try {
-            // Query for all producers
-            List<Producer> producers = db.createQuery("SELECT p FROM Producer p", Producer.class).getResultList();
-            
-            // Create JSON response
-            JsonArray response = new JsonArray();
-            
-            for (Producer producer : producers) {
-                JsonObject producerJson = new JsonObject()
-                        .put("id", producer.getId())
-                        .put("name", producer.getName())
-                        .put("description", producer.getDescription())
-                        .put("power_source", producer.getPowerSource());
-                
-                // Add grid ID if present
-                if (producer.getGrid() != null) {
-                    producerJson.put("grid", producer.getGrid().getId());
-                }
-                
-                // Add kind based on class
-                String kind;
-                if (producer instanceof SolarPanel) {
-                    kind = "SolarPanel";
-                } else if (producer instanceof WindTurbine) {
-                    kind = "WindTurbine";
-                } else {
-                    kind = "Producer";
-                }
-                producerJson.put("kind", kind);
-                
-                // Add available measurements
-                JsonArray measurements = new JsonArray();
-                producer.getMeasurements().forEach(measurement -> measurements.add(measurement.getId()));
-                producerJson.put("available_measurements", measurements);
-                
-                // Add owners
-                JsonArray owners = new JsonArray();
-                producer.getOwners().forEach(owner -> owners.add(owner.getId()));
-                producerJson.put("owners", owners);
-                
-                // Add specific SolarPanel fields
-                if (producer instanceof SolarPanel) {
-                    SolarPanel solarPanel = (SolarPanel) producer;
-                    producerJson.put("efficiency", solarPanel.getEfficiency());
-                }
-                
-                // Add specific WindTurbine fields
-                else if (producer instanceof WindTurbine) {
-                    WindTurbine windTurbine = (WindTurbine) producer;
-                    producerJson.put("height", windTurbine.getHeight());
-                    producerJson.put("blade_length", windTurbine.getBladeLength());
-                }
-                
-                response.add(producerJson);
-            }
-            
-            // Return response
-            context.response()
-                    .putHeader("content-type", "application/json")
-                    .end(response.encode());
-        } catch (Exception e) {
-            context.response()
-                    .setStatusCode(500)
-                    .end("Internal server error: " + e.getMessage());
+        // Exécute une requête SQL pour récupérer les identifiants des producteurs
+        List<Integer> producerIds = db.createNativeQuery("SELECT id FROM producer").getResultList();
+
+        // Récupère les identifiants des producteurs et les ajoute à une liste
+        List<JsonObject> producers = new ArrayList<>();
+        for (Integer producerId : producerIds) {
+            JsonObject res = sensor(producerId);
+            producers.add(res);
         }
-    
+
+        // Renvoie la liste des identifiants au format JSON
+        context.response()
+            .setStatusCode(200)
+            .putHeader("content-type", "application/json")
+            .end(producers.toString());
     }
     
 }
