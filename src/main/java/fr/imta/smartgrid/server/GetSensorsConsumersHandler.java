@@ -22,6 +22,7 @@ import fr.imta.smartgrid.model.WindTurbine;
 import fr.imta.smartgrid.model.EVCharger;
 
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.persistence.EntityManager;
@@ -115,21 +116,53 @@ public class GetSensorsConsumersHandler implements Handler<RoutingContext> {
     @Override
     public void handle(RoutingContext context) {
 
-        // Exécute une requête SQL pour récupérer tous les identifiants des consommateurs
-        List<Integer> producerIds = db.createNativeQuery("SELECT id FROM consumer").getResultList();
-
-        // Récupère les identifiants des consommateurs et les ajoute à une liste
-        List<JsonObject> producers = new ArrayList<>();
-        for (Integer producerId : producerIds) {
-            JsonObject res = sensor(producerId);
-            producers.add(res);
+         // Query for all consumers
+        List<Consumer> consumers = db.createQuery("SELECT c FROM Consumer c", Consumer.class).getResultList();
+        
+        // Create JSON response
+        JsonArray response = new JsonArray();
+        
+        for (Consumer consumer : consumers) {
+            JsonObject consumerJson = new JsonObject()
+                    .put("id", consumer.getId())
+                    .put("name", consumer.getName())
+                    .put("description", consumer.getDescription())
+                    .put("max_power", consumer.getMaxPower());
+            
+            // Add grid ID if present
+            if (consumer.getGrid() != null) {
+                consumerJson.put("grid", consumer.getGrid().getId());
+            }
+            
+            // Add kind based on class
+            String kind = consumer instanceof EVCharger ? "EVCharger" : "Consumer";
+            consumerJson.put("kind", kind);
+            
+            // Add available measurements
+            JsonArray measurements = new JsonArray();
+            consumer.getMeasurements().forEach(measurement -> measurements.add(measurement.getId()));
+            consumerJson.put("available_measurements", measurements);
+            
+            // Add owners
+            JsonArray owners = new JsonArray();
+            consumer.getOwners().forEach(owner -> owners.add(owner.getId()));
+            consumerJson.put("owners", owners);
+            
+            // Add specific EVCharger fields
+            if (consumer instanceof EVCharger) {
+                EVCharger evCharger = (EVCharger) consumer;
+                consumerJson.put("voltage", evCharger.getVoltage());
+                consumerJson.put("maxAmp", evCharger.getMaxAmp());
+                consumerJson.put("type", evCharger.getType());
+            }
+            
+            response.add(consumerJson);
         }
-
-        // Envoi de la réponse au format JSON
+        
+        // Return response
         context.response()
-            .setStatusCode(200)
-            .putHeader("content-type", "application/json")
-            .end(producers.toString());
+                .putHeader("content-type", "application/json")
+                .end(response.encode());
     }
     
 }

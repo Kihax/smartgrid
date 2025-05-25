@@ -3,9 +3,8 @@ package fr.imta.smartgrid.server;
 import java.util.List;
 
 import fr.imta.smartgrid.model.Grid;
-import fr.imta.smartgrid.model.Sensor;
 import fr.imta.smartgrid.model.Producer;
-
+import fr.imta.smartgrid.model.Sensor;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.persistence.EntityManager;

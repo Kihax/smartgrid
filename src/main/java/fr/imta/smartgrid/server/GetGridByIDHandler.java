@@ -62,7 +62,7 @@ public class GetGridByIDHandler implements Handler<RoutingContext> {
                 message.put("users", personIds);
                 message.put("sensors", sensorIds);
                 
-                context.end(message.toString()); // Envoi de l'objet JSON en réponse
+                context.response().putHeader("content-type", "application/json").end(message.toString()); // Envoi de l'objet JSON en réponse
             } catch (Exception e) {
                 context.response()
                     .setStatusCode(404)
