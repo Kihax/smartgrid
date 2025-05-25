@@ -1,15 +1,8 @@
 package fr.imta.smartgrid.server;
 
 import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import fr.imta.smartgrid.model.EVCharger;
 import fr.imta.smartgrid.model.Grid;
 import fr.imta.smartgrid.model.Person;
 import fr.imta.smartgrid.model.Sensor;
@@ -62,7 +55,12 @@ public class GetGridByIDHandler implements Handler<RoutingContext> {
                 message.put("users", personIds);
                 message.put("sensors", sensorIds);
                 
-                context.response().putHeader("content-type", "application/json").end(message.toString()); // Envoi de l'objet JSON en réponse
+
+                // Envoi de l'objet JSON en réponse
+                context.response()
+                    .putHeader("content-type", "application/json")
+                    .end(message.toString());
+                
             } catch (Exception e) {
                 context.response()
                     .setStatusCode(404)
